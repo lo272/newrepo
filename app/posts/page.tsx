@@ -2,7 +2,7 @@ import AuthButton from "../components/auth-button";
 import { createSupabaseServerClient } from "../utils/supabase/server";
 
 export default async function PostsPage() {
-    const supabase = createSupabaseServerClient();
+    const supabase = await createSupabaseServerClient();
     const { data: authData } = await supabase.auth.getUser();
     const user = authData?.user ?? null;
 
