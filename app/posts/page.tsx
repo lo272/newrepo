@@ -1,6 +1,25 @@
-import { supabase } from "../../lib/supabase";
+import AuthButton from "../components/auth-button";
+import { createSupabaseServerClient } from "../utils/supabase/server";
 
 export default async function PostsPage() {
+    const supabase = createSupabaseServerClient();
+    const { data: authData } = await supabase.auth.getUser();
+    const user = authData?.user ?? null;
+
+    if (!user) {
+        return (
+            <main style={{ padding: 24, maxWidth: 640, margin: "0 auto" }}>
+                <h1>Sidechat Posts</h1>
+                <p style={{ color: "#444", lineHeight: 1.6 }}>
+                    This page is gated. Sign in with Google to view the latest posts.
+                </p>
+                <div style={{ marginTop: 16 }}>
+                    <AuthButton />
+                </div>
+            </main>
+        );
+    }
+
     const { data, error } = await supabase
         .from("sidechat_posts")
         .select("*")
@@ -18,7 +37,10 @@ export default async function PostsPage() {
 
     return (
         <main style={{ padding: 24 }}>
-            <h1>Sidechat Posts</h1>
+            <div style={{ display: "flex", justifyContent: "space-between", gap: 16 }}>
+                <h1>Sidechat Posts</h1>
+                <AuthButton userEmail={user.email} />
+            </div>
 
             {!data || data.length === 0 ? (
                 <p>No posts found.</p>
