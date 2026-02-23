@@ -1,10 +1,13 @@
 "use client";
 
-import { useFormState, useFormStatus } from "react-dom";
-import {
-  initialCaptionVoteState,
-  submitCaptionVote,
-} from "../actions/caption-vote";
+import { useActionState } from "react";
+import { useFormStatus } from "react-dom";
+import { submitCaptionVote } from "../actions/caption-vote";
+
+const initialCaptionVoteState = {
+    error: null as string | null,
+    success: false,
+};
 
 type CaptionVoteFormProps = {
   captionId: string;
@@ -53,10 +56,10 @@ function VoteButtons() {
 }
 
 export default function CaptionVoteForm({ captionId }: CaptionVoteFormProps) {
-  const [state, formAction] = useFormState(
-    submitCaptionVote,
-    initialCaptionVoteState,
-  );
+    const [state, formAction] = useActionState(
+        submitCaptionVote,
+        initialCaptionVoteState,
+    );
 
   return (
     <form action={formAction} style={{ display: "grid", gap: 6 }}>

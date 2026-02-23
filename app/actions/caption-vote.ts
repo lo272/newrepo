@@ -3,19 +3,14 @@
 import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "../utils/supabase/server";
 
-export type CaptionVoteState = {
+type CaptionVoteState = {
   error: string | null;
   success: boolean;
 };
 
-export const initialCaptionVoteState: CaptionVoteState = {
-  error: null,
-  success: false,
-};
-
 export async function submitCaptionVote(
-  _prevState: CaptionVoteState,
-  formData: FormData,
+    _prevState: CaptionVoteState,
+    formData: FormData,
 ): Promise<CaptionVoteState> {
   const supabase = await createSupabaseServerClient();
   const { data: authData } = await supabase.auth.getUser();
@@ -38,11 +33,17 @@ export async function submitCaptionVote(
     return { error: "Vote must be 1 or -1.", success: false };
   }
 
+  const now = new Date().toISOString();
+
   const { error } = await supabase.from("caption_votes").insert({
     caption_id: captionId,
-    user_id: user.id,
-    vote,
+    profile_id: user.id,
+    vote_value: vote,
+    created_datetime_utc: now,
+    modified_datetime_utc: now,
   });
+
+
 
   if (error) {
     return { error: error.message, success: false };
