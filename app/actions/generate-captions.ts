@@ -49,4 +49,10 @@ export async function generateCaptions(formData: FormData) {
   const captionRes = await fetch(`${API_BASE}/pipeline/generate-captions`, {
     method: "POST",
     headers,
-    body: JSON.stringify({ imageId }
+    body: JSON.stringify({ imageId }),
+  });
+  if (!captionRes.ok) return { error: `Step 4 failed: ${await captionRes.text()}` };
+  const captions = await captionRes.json();
+
+  return { captions };
+} }),
