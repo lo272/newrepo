@@ -10,12 +10,13 @@ export default async function PostsPage() {
 
   if (!user) {
     return (
-      <main style={{ padding: 24, maxWidth: 640, margin: "0 auto" }}>
-        <h1>Caption Ratings</h1>
-        <p style={{ color: "#444", lineHeight: 1.6 }}>
-          Sign in with Google to view captions and submit votes.
-        </p>
-        <div style={{ marginTop: 16 }}>
+      <main style={{ minHeight: "100vh", background: "#f9f9f9", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ background: "#fff", borderRadius: 16, padding: 48, maxWidth: 400, width: "100%", textAlign: "center", boxShadow: "0 2px 16px rgba(0,0,0,0.08)" }}>
+          <div style={{ fontSize: 36, marginBottom: 12 }}>😂</div>
+          <h1 style={{ fontSize: 24, fontWeight: 700, margin: "0 0 8px" }}>Caption Ratings</h1>
+          <p style={{ color: "#666", lineHeight: 1.6, marginBottom: 24 }}>
+            Sign in to view AI-generated captions and vote on the funniest ones.
+          </p>
           <AuthButton />
         </div>
       </main>
@@ -24,67 +25,91 @@ export default async function PostsPage() {
 
   const { data, error } = await supabase
     .from("captions")
-    .select("*")
+    .select("*, images(url)")
+    .not("content", "is", null)
+    .order("created_datetime_utc", { ascending: false })
     .limit(50);
 
   if (error) {
     return (
       <main style={{ padding: 24 }}>
         <h1>Caption Ratings</h1>
-        <p>Could not load captions.</p>
-        <pre>{error.message}</pre>
+        <p style={{ color: "red" }}>Could not load captions: {error.message}</p>
       </main>
     );
   }
 
   return (
-    <main style={{ padding: 24 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", gap: 16 }}>
-        <h1>Caption Ratings</h1>
+    <main style={{ minHeight: "100vh", background: "#f9f9f9" }}>
+      {/* Header */}
+      <div style={{ background: "#fff", borderBottom: "1px solid #eee", padding: "16px 24px", display: "flex", justifyContent: "space-between", alignItems: "center", position: "sticky", top: 0, zIndex: 10 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <span style={{ fontSize: 24 }}>😂</span>
+          <h1 style={{ margin: 0, fontSize: 20, fontWeight: 700 }}>Caption Ratings</h1>
+        </div>
         <AuthButton userEmail={user.email} />
       </div>
 
-      <ImageUploadForm />
+      <div style={{ maxWidth: 680, margin: "0 auto", padding: "24px 16px" }}>
+        {/* Image upload + caption generation */}
+        <ImageUploadForm />
 
-      {!data || data.length === 0 ? (
-        <p>No captions found.</p>
-      ) : (
-        <div style={{ display: "grid", gap: 12 }}>
-          {data.map((row: any, idx: number) => {
-            const captionId = row.id;
-            const captionText =
-              typeof row.content === "string"
-                ? row.content
-                : typeof row.caption === "string"
-                ? row.caption
-                : null;
+        {/* Caption feed */}
+        <h2 style={{ fontSize: 16, fontWeight: 600, color: "#888", textTransform: "uppercase", letterSpacing: 1, margin: "0 0 16px" }}>
+          Recent Captions
+        </h2>
 
-            return (
-              <div
-                key={row.id ?? idx}
-                style={{ border: "1px solid #ddd", borderRadius: 12, padding: 12 }}
-              >
-                {captionText ? (
-                  <p style={{ marginTop: 0, fontSize: 16 }}>{captionText}</p>
-                ) : (
-                  <p style={{ margin: 0, fontSize: 13, color: "#999", fontStyle: "italic" }}>
-                    No caption text
-                  </p>
-                )}
-                {captionId ? (
-                  <div style={{ marginTop: 12 }}>
-                    <CaptionVoteForm captionId={String(captionId)} />
+        {!data || data.length === 0 ? (
+          <p style={{ color: "#999", textAlign: "center", padding: 48 }}>No captions found.</p>
+        ) : (
+          <div style={{ display: "grid", gap: 16 }}>
+            {data.map((row: any, idx: number) => {
+              const captionText = typeof row.content === "string" ? row.content : null;
+              const imageUrl = row.images?.url ?? null;
+              const likeCount = row.like_count ?? 0;
+
+              if (!captionText) return null;
+
+              return (
+                <div
+                  key={row.id ?? idx}
+                  style={{
+                    background: "#fff",
+                    border: "1px solid #eee",
+                    borderRadius: 16,
+                    overflow: "hidden",
+                    boxShadow: "0 1px 4px rgba(0,0,0,0.05)",
+                  }}
+                >
+                  {/* Image */}
+                  {imageUrl && (
+                    <img
+                      src={imageUrl}
+                      alt="Caption image"
+                      style={{ width: "100%", maxHeight: 300, objectFit: "cover", display: "block" }}
+                    />
+                  )}
+
+                  <div style={{ padding: 16 }}>
+                    {/* Caption text */}
+                    <p style={{ margin: "0 0 12px", fontSize: 16, lineHeight: 1.5, color: "#1a1a1a" }}>
+                      "{captionText}"
+                    </p>
+
+                    {/* Footer row */}
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <span style={{ fontSize: 13, color: "#999" }}>
+                        {likeCount > 0 ? `👍 ${likeCount}` : likeCount < 0 ? `👎 ${Math.abs(likeCount)}` : "No votes yet"}
+                      </span>
+                      {row.id && <CaptionVoteForm captionId={String(row.id)} />}
+                    </div>
                   </div>
-                ) : (
-                  <p style={{ margin: 0, fontSize: 12, color: "#666" }}>
-                    Missing caption id.
-                  </p>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
     </main>
   );
 }
