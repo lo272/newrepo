@@ -46,6 +46,10 @@ export async function submitCaptionVote(
 
 
   if (error) {
+    const msg = error.message.toLowerCase();
+    if (msg.includes("duplicate") || msg.includes("unique")) {
+      return { error: "You've already voted on this caption!", success: false };
+    }
     return { error: error.message, success: false };
   }
 
