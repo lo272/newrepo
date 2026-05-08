@@ -86,6 +86,9 @@ export default function ImageUploadForm() {
           />
         )}
 
+        <style>{`
+          @keyframes spin { to { transform: rotate(360deg); } }
+        `}</style>
         <button
           type="submit"
           disabled={loading || !preview}
@@ -99,9 +102,26 @@ export default function ImageUploadForm() {
             cursor: loading || !preview ? "not-allowed" : "pointer",
             fontSize: 14,
             fontWeight: 600,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 8,
           }}
         >
-          {loading ? "Generating… (may take ~30s)" : "Generate Captions"}
+          {loading ? (
+            <>
+              <span style={{
+                width: 16,
+                height: 16,
+                border: "2px solid rgba(255,255,255,0.4)",
+                borderTopColor: "#fff",
+                borderRadius: "50%",
+                display: "inline-block",
+                animation: "spin 0.7s linear infinite",
+              }} />
+              Uploading...
+            </>
+          ) : "Generate Captions"}
         </button>
       </form>
 

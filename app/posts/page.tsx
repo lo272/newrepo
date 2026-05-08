@@ -25,7 +25,7 @@ export default async function PostsPage() {
 
   const { data, error } = await supabase
     .from("captions")
-    .select("*, images(url)")
+    .select("*, images(url), caption_votes(vote_value)")
     .not("content", "is", null)
     .order("created_datetime_utc", { ascending: false })
     .limit(50);
@@ -66,7 +66,7 @@ export default async function PostsPage() {
             {data.map((row: any, idx: number) => {
               const captionText = typeof row.content === "string" ? row.content : null;
               const imageUrl = row.images?.url ?? null;
-              const likeCount = row.like_count ?? 0;
+              const voteCount = Array.isArray(row.caption_votes) ? row.caption_votes.length : 0;
 
               if (!captionText) return null;
 
@@ -97,11 +97,14 @@ export default async function PostsPage() {
                     </p>
 
                     {/* Footer row */}
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                      <span style={{ fontSize: 13, color: "#999" }}>
-                        {likeCount > 0 ? `👍 ${likeCount}` : likeCount < 0 ? `👎 ${Math.abs(likeCount)}` : "No votes yet"}
-                      </span>
-                      {row.id && <CaptionVoteForm captionId={String(row.id)} />}
+                    <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center" }}>
+                      {row.id && (
+                        <CaptionVoteForm
+                          captionId={String(row.id)}
+                          isLoggedIn={true}
+                          initialVoteCount={voteCount}
+                        />
+                      )}
                     </div>
                   </div>
                 </div>
